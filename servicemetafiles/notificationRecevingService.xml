@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<serviceGroup name="notificationRecevingService" successfullyAdded="true">
+   <service name="notificationRecevingService"
+            exposedAllTransports="false"
+            serviceDeployedTime="1371298721167"
+            successfullyAdded="true">
+      <operation name="mediate">
+         <module name="activation" version="2.2" type="engagedModules"/>
+         <module name="addressing" version="4.0" type="engagedModules"/>
+      </operation>
+      <bindings>
+         <binding name="notificationRecevingServiceSoap11Binding">
+            <operation name="mediate"/>
+         </binding>
+         <binding name="notificationRecevingServiceSoap12Binding">
+            <operation name="mediate"/>
+         </binding>
+         <binding name="notificationRecevingServiceHttpBinding">
+            <operation name="mediate"/>
+         </binding>
+      </bindings>
+      <policies/>
+      <module name="activation" version="2.2" type="engagedModules"/>
+      <module name="addressing" version="4.0" type="engagedModules"/>
+      <parameter name="serviceType" type="1">proxy</parameter>
+   </service>
+</serviceGroup>

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<api xmlns="http://ws.apache.org/ns/synapse"
+     name="Monarch_Subscription"
+     context="/subscribe"
+     hostname="localhost">
+   <resource methods="POST" uri-template="/msisdn/{value}">
+      <inSequence>
+         <property name="app_data"
+                   expression="get-property('transport','X-JWT-Assertion')"/>
+         <class name="com.cisco.monarch.ApplicationMetadata"/>
+         <class name="com.cisco.monarch.SubscribeApplication"/>
+         <enrich>
+            <source type="body" clone="true"/>
+            <target type="property" property="CLAIM_STORE"/>
+         </enrich>
+         <log level="full"/>
+         <dbreport>
+            <connection>
+               <pool>
+                  <password>admin</password>
+                  <user>admin</user>
+                  <url>jdbc:cassandra://localhost:9160/Monarch_KS?version=2.0.0</url>
+                  <driver>org.apache.cassandra.cql.jdbc.CassandraDriver</driver>
+               </pool>
+            </connection>
+            <statement>
+               <sql>INSERT INTO Subscription_CS ('KEY','appID','requestID','msisdn','callBackData','notifyURL') VALUES (?,?,?,?,?,?)</sql>
+               <parameter expression="fn:concat(get-property('uri.var.value'),get-property('Application_ID'))"
+                          type="VARCHAR"/>
+               <parameter expression="get-property('Application_ID')" type="VARCHAR"/>
+               <parameter xmlns:m0="http://www.w3.org/2003/05/soap-envelope"
+                          expression="//m0:Body/qosTypeNotificationSubscription/clientCorrelator"
+                          type="BIGINT"/>
+               <parameter expression="get-property('uri.var.value')" type="BIGINT"/>
+               <parameter xmlns:m0="http://www.w3.org/2003/05/soap-envelope"
+                          expression="//m0:Body/qosTypeNotificationSubscription/callbackReference/callbackData"
+                          type="VARCHAR"/>
+               <parameter xmlns:m0="http://www.w3.org/2003/05/soap-envelope"
+                          expression="//m0:Body/qosTypeNotificationSubscription/callbackReference/notifyURL"
+                          type="VARCHAR"/>
+            </statement>
+         </dbreport>
+         <enrich>
+            <source type="property" clone="true" property="CLAIM_STORE"/>
+            <target type="body"/>
+         </enrich>
+         <log level="custom">
+            <property name="SUBSCRIPTION" value="CREATED"/>
+         </log>
+         <header name="To" action="remove"/>
+         <property name="RESPONSE" value="true" scope="default" type="STRING"/>
+         <property name="NO_ENTITY_BODY" scope="axis2" action="remove"/>
+         <send/>
+      </inSequence>
+   </resource>
+   <resource methods="DELETE" uri-template="/msisdn/{value}/{key}">
+      <inSequence>
+         <dbreport>
+            <connection>
+               <pool>
+                  <password>admin</password>
+                  <user>admin</user>
+                  <url>jdbc:cassandra://localhost:9160/Monarch_KS?version=2.0.0</url>
+                  <driver>org.apache.cassandra.cql.jdbc.CassandraDriver</driver>
+               </pool>
+            </connection>
+            <statement>
+               <sql>DELETE FROM Subscription_CS WHERE KEY = ? </sql>
+               <parameter expression="get-property('uri.var.key')" type="VARCHAR"/>
+            </statement>
+         </dbreport>
+      </inSequence>
+   </resource>
+   <resource methods="GET">
+      <inSequence>
+         <property name="Monarch_Operation" value="query"/>
+         <class name="com.cisco.monarch.SubscribeQuery"/>
+         <header name="To" action="remove"/>
+         <property name="RESPONSE" value="true" scope="default" type="STRING"/>
+         <property name="NO_ENTITY_BODY" scope="axis2" action="remove"/>
+         <property name="messageType" value="application/json" scope="axis2"/>
+         <send/>
+      </inSequence>
+   </resource>
+</api>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<proxy xmlns="http://ws.apache.org/ns/synapse"
+       name="Diameter_Usage_Notify"
+       startOnLoad="true">
+   <target>
+      <inSequence>
+         <payloadFactory>
+            <format>
+               <default-bearer-status xmlns="">
+                  <default-bearer-result>
+                     <callback-token>2110000004158c20875-3429-4864-aad9-a1ea5bd57d4e</callback-token>
+                     <msisdn>2110000004</msisdn>
+                     <result>
+                        <code>204</code>
+                        <info>Diameter RAR</info>
+                     </result>
+                     <used-volume>20</used-volume>
+                  </default-bearer-result>
+               </default-bearer-status>
+            </format>
+         </payloadFactory>
+         <log level="full"/>
+         <property name="messageType"
+                   value="application/x-www-form-urlencoded"
+                   scope="axis2"/>
+         <send>
+            <endpoint>
+               <address uri="http://localhost:8280/qosupdate/doUpdate" format="pox"/>
+            </endpoint>
+         </send>
+      </inSequence>
+   </target>
+</proxy>

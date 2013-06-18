@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<api xmlns="http://ws.apache.org/ns/synapse"
+     name="MonarchQosUpdateDiameterNotify"
+     context="/qosupdate">
+   <resource methods="POST" uri-template="/doUpdate">
+      <inSequence>
+         <log level="custom">
+            <property name="calling" value="QosDiameterNotify java class"/>
+         </log>
+         <class name="com.cisco.monarch.QosUpdateDiameterNotify"/>
+         <send/>
+      </inSequence>
+   </resource>
+</api>

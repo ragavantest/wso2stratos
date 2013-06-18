@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<api xmlns="http://ws.apache.org/ns/synapse"
+     name="ThrottleUser"
+     context="/users">
+   <resource methods="POST" uri-template="/sul/{level}">
+      <inSequence>
+         <log level="full"/>
+         <property name="app_data"
+                   expression="get-property('transport','X-JWT-Assertion')"/>
+         <class name="com.cisco.monarch.ApplicationMetadata"/>
+         <property name="OUT_ONLY" value="true"/>
+         <property name="FORCE_SC_ACCEPTED" value="true" scope="axis2"/>
+         <property name="SUL"
+                   expression="get-property('uri.var.level')"
+                   scope="default"
+                   type="INTEGER"/>
+         <log level="custom">
+            <property name="SUL-LEVEL" expression="get-property('SUL')"/>
+         </log>
+         <log level="custom">
+            <property name="USER COUNT" expression="fn:count(//usersList/user)"/>
+         </log>
+         <filter xpath="fn:count(//usersList/user) &gt; 0">
+            <then>
+               <filter xpath="number(string(get-property('SUL'))) &gt; 0">
+                  <then>
+                     <log level="custom">
+                        <property name="SUL-Condition" value="Greater than 3"/>
+                     </log>
+                     <iterate id="User-Iterator" expression="//usersList/user">
+                        <target>
+                           <sequence>
+                              <payloadFactory>
+                                 <format>
+                                    <user xmlns="">
+                                       <ip>$1</ip>
+                                       <imsi>$2</imsi>
+                                       <sul>$3</sul>
+                                       <operation>Add</operation>
+                                       <stationID>broadband</stationID>
+                                    </user>
+                                 </format>
+                                 <args>
+                                    <arg expression="//user/ip"/>
+                                    <arg expression="//user/imsi"/>
+                                    <arg expression="$ctx:SUL"/>
+                                 </args>
+                              </payloadFactory>
+                              <log level="full"/>
+                              <enrich>
+                                 <source type="body" clone="true"/>
+                                 <target type="property" property="CLAIM_STORE"/>
+                              </enrich>
+                              <class name="com.cisco.monarch.CongestThrottleClient"/>
+                              <header name="To"
+                                      value="http://localhost:8081/mine/rest/1/qos/congestion/request"/>
+                              <send/>
+                           </sequence>
+                        </target>
+                     </iterate>
+                  </then>
+                  <else>
+                     <log level="custom">
+                        <property name="SUL-Condition" value="Less than or eq 0"/>
+                     </log>
+                     <drop/>
+                  </else>
+               </filter>
+            </then>
+            <else>
+               <log level="custom">
+                  <property name="Else Method" value="No Users"/>
+               </log>
+               <drop/>
+            </else>
+         </filter>
+      </inSequence>
+      <outSequence>
+         <send/>
+      </outSequence>
+   </resource>
+   <resource methods="POST" url-mapping="/delete">
+      <inSequence>
+         <property name="OUT_ONLY" value="true"/>
+         <property name="FORCE_SC_ACCEPTED" value="true" scope="axis2"/>
+         <log level="custom">
+            <property name="DELETE-CALL" value="Inside Delete"/>
+         </log>
+         <log level="full"/>
+         <filter xpath="fn:count(//usersList/user) &gt; 0">
+            <then>
+               <iterate id="User-Iterator" expression="//usersList/user">
+                  <target>
+                     <sequence>
+                        <payloadFactory>
+                           <format>
+                              <user>
+                                 <ip>$1</ip>
+                                 <imsi>$2</imsi>
+                                 <operation>Delete</operation>
+                                 <stationID>broadband</stationID>
+                              </user>
+                           </format>
+                           <args>
+                              <arg expression="//user/ip"/>
+                              <arg expression="//user/imsi"/>
+                           </args>
+                        </payloadFactory>
+                        <log level="full"/>
+                        <class name="com.cisco.monarch.CongestThrottleClient"/>
+                        <drop/>
+                     </sequence>
+                  </target>
+               </iterate>
+            </then>
+            <else>
+               <log level="custom">
+                  <property name="Else Method" value="No Users"/>
+               </log>
+               <drop/>
+            </else>
+         </filter>
+         <drop/>
+      </inSequence>
+   </resource>
+</api>

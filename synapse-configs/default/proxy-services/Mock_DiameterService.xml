@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<proxy xmlns="http://ws.apache.org/ns/synapse"
+       name="Mock_DiameterService"
+       startOnLoad="true">
+   <target>
+      <inSequence>
+         <log level="custom">
+            <property name="DiameterService" value="Service Invoked"/>
+         </log>
+         <log level="full"/>
+         <payloadFactory>
+            <format>
+               <default-bearer-status xmlns="">
+                  <result>
+                     <code>2110000004158c20875-3429-4864-aad9-a1ea5bd57d4e</code>
+                     <info>http://resource.wso2.com</info>
+                  </result>
+                  <max-bitrate>
+                     <ul>34535335</ul>
+                     <dl>35646657</dl>
+                  </max-bitrate>
+                  <used-volume>50</used-volume>
+               </default-bearer-status>
+            </format>
+         </payloadFactory>
+         <header name="To" action="remove"/>
+         <property name="RESPONSE" value="true" scope="default" type="STRING"/>
+         <property name="NO_ENTITY_BODY" scope="axis2" action="remove"/>
+         <send/>
+      </inSequence>
+   </target>
+</proxy>

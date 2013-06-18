@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<proxy xmlns="http://ws.apache.org/ns/synapse"
+       name="notificationRecevingService"
+       startOnLoad="true">
+   <target>
+      <inSequence>
+         <log level="custom">
+            <property name="Status" value="Response_Received"/>
+         </log>
+         <log level="full"/>
+      </inSequence>
+   </target>
+</proxy>

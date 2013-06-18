@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<api xmlns="http://ws.apache.org/ns/synapse"
+     name="Monarch_QOS_Update"
+     context="/update"
+     hostname="localhost">
+   <resource methods="POST">
+      <inSequence>
+         <property name="app_data"
+                   expression="get-property('transport','X-JWT-Assertion')"/>
+         <property name="HTTP_VERSION_1.0" value="true" scope="axis2"/>
+         <property name="DISABLE_CHUNKING" value="true" scope="axis2"/>
+         <enrich>
+            <source type="body" clone="true"/>
+            <target type="property" property="CLAIM_STORE"/>
+         </enrich>
+         <class name="com.cisco.monarch.ApplicationMetadata"/>
+         <class name="com.cisco.monarch.QosUpdateClient"/>
+         <log level="full">
+            <property name="Content-Type" expression="$trp:Content-Type"/>
+         </log>
+         <property name="messageType" value="application/xml" scope="axis2"/>
+         <property name="ContentType" value="application/xml" scope="axis2"/>
+         <property name="Content-Type" value="application/xml" scope="transport"/>
+         <property name="REST_URL_POSTFIX" scope="axis2" action="remove"/>
+         <send>
+            <endpoint>
+               <address uri="http://localhost:8888/mine/rest/1/qos/default-bearer/request"
+                        format="pox"/>
+            </endpoint>
+         </send>
+      </inSequence>
+      <outSequence>
+         <log level="custom">
+            <property name="resourceURL" expression="get-property('transport','Location')"/>
+         </log>
+         <log level="custom">
+            <property name="pre_resourceURL"
+                      expression="get-property('axis2','PRE_LOCATION_HEADER')"/>
+         </log>
+         <log level="custom">
+            <property name="Token" expression="get-property('Token')"/>
+         </log>
+         <dbreport>
+            <connection>
+               <pool>
+                  <password>admin</password>
+                  <user>admin</user>
+                  <url>jdbc:cassandra://localhost:9160/Monarch_KS?version=2.0.0</url>
+                  <driver>org.apache.cassandra.cql.jdbc.CassandraDriver</driver>
+               </pool>
+            </connection>
+            <statement>
+               <sql>UPDATE QOS_Update_CS SET resourceURL=? WHERE KEY = ? </sql>
+               <parameter expression="get-property('axis2','PRE_LOCATION_HEADER')" type="VARCHAR"/>
+               <parameter expression="get-property('Token')" type="VARCHAR"/>
+            </statement>
+         </dbreport>
+         <property name="Location" scope="transport" action="remove"/>
+         <send/>
+      </outSequence>
+   </resource>
+</api>

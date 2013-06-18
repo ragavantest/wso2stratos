@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<serviceGroup name="Diameter_Usage_Notify" successfullyAdded="true">
+   <service name="Diameter_Usage_Notify"
+            exposedAllTransports="false"
+            serviceDeployedTime="1371298721191"
+            successfullyAdded="true">
+      <operation name="mediate">
+         <module name="activation" version="2.2" type="engagedModules"/>
+         <module name="addressing" version="4.0" type="engagedModules"/>
+      </operation>
+      <bindings>
+         <binding name="Diameter_Usage_NotifySoap12Binding">
+            <operation name="mediate"/>
+         </binding>
+         <binding name="Diameter_Usage_NotifySoap11Binding">
+            <operation name="mediate"/>
+         </binding>
+         <binding name="Diameter_Usage_NotifyHttpBinding">
+            <operation name="mediate"/>
+         </binding>
+      </bindings>
+      <policies/>
+      <module name="activation" version="2.2" type="engagedModules"/>
+      <module name="addressing" version="4.0" type="engagedModules"/>
+      <parameter name="serviceType" type="1">proxy</parameter>
+   </service>
+</serviceGroup>
